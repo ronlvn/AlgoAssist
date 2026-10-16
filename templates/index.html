@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoAssist - עוזר הוראה לאלגוריתמים א'</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+            direction: rtl;
+        }
+        #chat-container {
+            width: 100%;
+            max-width: 700px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            height: 88vh;
+        }
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            background: #ffffff;
+            border-radius: 10px 10px 0 0;
+        }
+        #header h3 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        #reset-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        #reset-btn:hover {
+            background: #c82333;
+        }
+        #messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            scroll-behavior: smooth;
+        }
+
+        /* עיצוב הודעות */
+        .message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+        .user-msg {
+            background: #007bff;
+            color: white;
+            align-self: flex-start;
+            text-align: right;
+            white-space: pre-wrap;
+        }
+        .bot-msg {
+            background: #e9ecef;
+            color: black;
+            align-self: flex-end;
+            line-height: 1.6;
+            text-align: right;
+            direction: rtl;
+        }
+        .system-msg {
+            background: #d1ecf1;
+            color: #0c5460;
+            align-self: center;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .bot-msg p { margin: 0 0 10px 0; }
+        .bot-msg p:last-child { margin-bottom: 0; }
+
+        /* תיקון רשימות (בולטים) לעברית מימין לשמאל */
+        .bot-msg ul, .bot-msg ol {
+            padding-right: 25px;
+            padding-left: 0;
+            margin: 10px 0;
+        }
+        .bot-msg li { margin-bottom: 5px; }
+
+        /* קטעי קוד מרובי שורות */
+        .bot-msg pre {
+            background: #d6d8db;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+            margin: 10px 0;
+        }
+
+        /* קוד ואנגלית בתוך שורה (Inline code) */
+        .bot-msg code {
+            font-family: Consolas, monospace;
+            background: #d6d8db;
+            padding: 2px 4px;
+            border-radius: 3px;
+            direction: ltr;
+            unicode-bidi: embed;
+            display: inline-block;
+        }
+        .bot-msg pre code {
+            background: transparent;
+            padding: 0;
+            display: block;
+        }
+
+        /* תוויות נתיב ומקורות */
+        .meta-footer {
+            margin-top: 10px;
+            padding-top: 6px;
+            border-top: 1px solid #d3d6d8;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+        .router-badge {
+            font-size: 0.78em;
+            background: #ffc107;
+            color: black;
+            padding: 3px 7px;
+            border-radius: 4px;
+            font-weight: bold;
+            direction: rtl;
+        }
+        .sources-badge {
+            font-size: 0.75em;
+            background: #dee2e6;
+            color: #333;
+            padding: 3px 7px;
+            border-radius: 4px;
+            direction: rtl;
+        }
+
+        /* אזור הקלט */
+        #input-area {
+            display: flex;
+            padding: 12px 15px;
+            border-top: 1px solid #ddd;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 0.95em;
+            resize: none;
+            max-height: 120px;
+            line-height: 1.4;
+        }
+        #send-btn {
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            height: 42px;
+        }
+        #send-btn:disabled {
+            background: #94d3a2;
+            cursor: not-allowed;
+        }
+        #loading {
+            display: none;
+            align-self: center;
+            color: #666;
+            font-style: italic;
+            margin: 6px 0;
+        }
+        .error-msg {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="header">
+            <h3>AlgoAssist - אלגוריתמים א'</h3>
+            <button id="reset-btn" onclick="resetChat()">שיחה חדשה ↺</button>
+        </div>
+
+        <div id="messages">
+            <div class="message system-msg">
+                שלום! אפשר לשאול שאלות על מצגות ומבחני הקורס, לבקש שאלות תרגול, או להדביק פסאודו-קוד לבדיקה.
+            </div>
+        </div>
+
+        <div id="loading">מעבד תשובה...</div>
+
+        <div id="input-area">
+            <textarea id="user-input" rows="2" maxlength="4000" placeholder="שאל שאלה או הדבק קוד לבדיקה... (Enter לשליחה, Shift+Enter לשורה חדשה)" onkeydown="handleKeyDown(event)"></textarea>
+            <button id="send-btn" onclick="sendMessage()">שלח</button>
+        </div>
+    </div>
+
+    <script>
+        function scrollToBottom() {
+            const messagesDiv = document.getElementById('messages');
+            requestAnimationFrame(() => {
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            });
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            const text = input.value.trim();
+            if (!text || sendBtn.disabled) return;
+
+            addMessage(text, 'user-msg');
+            input.value = '';
+            sendBtn.disabled = true;
+
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            scrollToBottom();
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: text })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    addMessage(data.answer || 'שגיאה בתקשורת עם השרת.', 'bot-msg error-msg');
+                } else {
+                    addBotMessage(data.answer, data.router_path, data.sources);
+                }
+            } catch (error) {
+                addMessage('שגיאה בתקשורת עם השרת. ודא שהשרת פועל.', 'bot-msg error-msg');
+            } finally {
+                loading.style.display = 'none';
+                sendBtn.disabled = false;
+                input.focus();
+                scrollToBottom();
+            }
+        }
+
+        async function resetChat() {
+            try {
+                const response = await fetch('/reset', { method: 'POST' });
+                if (response.ok) {
+                    const messagesDiv = document.getElementById('messages');
+                    messagesDiv.innerHTML = '';
+                    addMessage('השיחה אופסה. אפשר להתחיל נושא חדש!', 'system-msg');
+                }
+            } catch (error) {
+                addMessage('שגיאה באיפוס השיחה.', 'bot-msg error-msg');
+            }
+        }
+
+        function addMessage(text, className) {
+            const messagesDiv = document.getElementById('messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${className}`;
+            msgDiv.textContent = text;
+            messagesDiv.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        function addBotMessage(text, routerPath, sources) {
+            const messagesDiv = document.getElementById('messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message bot-msg';
+
+            const textWrapper = document.createElement('div');
+            textWrapper.innerHTML = marked.parse(text);
+            msgDiv.appendChild(textWrapper);
+
+            if (routerPath || (sources && sources.length > 0)) {
+                const footer = document.createElement('div');
+                footer.className = 'meta-footer';
+
+                if (routerPath) {
+                    const badge = document.createElement('span');
+                    badge.className = 'router-badge';
+                    badge.textContent = `נתיב: ${routerPath}`;
+                    footer.appendChild(badge);
+                }
+
+                if (sources && sources.length > 0) {
+                    const srcBadge = document.createElement('span');
+                    srcBadge.className = 'sources-badge';
+                    srcBadge.textContent = `מקורות שנשלפו: ${sources.slice(0, 4).join(' | ')}`;
+                    footer.appendChild(srcBadge);
+                }
+
+                msgDiv.appendChild(footer);
+            }
+
+            messagesDiv.appendChild(msgDiv);
+            scrollToBottom();
+        }
+
+        function handleKeyDown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>
