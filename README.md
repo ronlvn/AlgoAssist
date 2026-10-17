@@ -3,7 +3,7 @@
 
 ---
 
-## 🇮🇱 תיעוד בעברית (Hebrew Documentation)
+## 🇮🇱 תיעוד בעברית (Hebrew Documentation).
 
 ### 1. סקירת הפרויקט וקהל היעד
 **AlgoAssist** היא מערכת Full-Stack מבוססת סוכן AI (Agentic Knowledge Application) המשמשת כעוזר הוראה אוטומטי בקורס האקדמי **"אלגוריתמים א'"**.
