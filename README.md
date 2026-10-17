@@ -92,7 +92,7 @@ python app.py
 
 6. **גישה לממשק המשתמש בדפדפן:**
 ~~~text
-[http://127.0.0.1:5001](http://127.0.0.1:5001)
+[http://127.0.0.1:8080](http://127.0.0.1:8080)
 ~~~
 
 ### 6. רפלקציה אישית (Project Reflection)
@@ -175,7 +175,7 @@ python app.py
 
 6. **Open the client in your browser:**
 ~~~text
-[http://127.0.0.1:5001](http://127.0.0.1:5001)
+[http://127.0.0.1:8080](http://127.0.0.1:8080)
 ~~~
 
 ### 6. Project Reflection (English Summary)
